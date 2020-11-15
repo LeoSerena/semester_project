@@ -1,0 +1,182 @@
+<?xml version='1.0' encoding='utf-8'?>
+<gexf version="1.2" xmlns="http://www.gexf.net/1.2draft" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.gexf.net/1.2draft http://www.gexf.net/1.2draft/gexf.xsd">
+  <meta lastmodifieddate="2020-11-13">
+    <creator>NetworkX 2.5</creator>
+  </meta>
+  <graph defaultedgetype="undirected" mode="static" name="">
+    <attributes class="node" mode="static">
+      <attribute id="0" title="screen_name" type="string" />
+    </attributes>
+    <nodes>
+      <node id="1100413458393092096" label="1100413458393092096">
+        <attvalues>
+          <attvalue for="0" value="JPVinquant" />
+        </attvalues>
+      </node>
+      <node id="909887195527426048" label="909887195527426048">
+        <attvalues>
+          <attvalue for="0" value="" />
+        </attvalues>
+      </node>
+      <node id="7227522" label="7227522">
+        <attvalues>
+          <attvalue for="0" value="tristanmf" />
+        </attvalues>
+      </node>
+      <node id="48889987" label="48889987">
+        <attvalues>
+          <attvalue for="0" value="" />
+        </attvalues>
+      </node>
+      <node id="760011568272838660" label="760011568272838660">
+        <attvalues>
+          <attvalue for="0" value="" />
+        </attvalues>
+      </node>
+      <node id="1118563890999197697" label="1118563890999197697">
+        <attvalues>
+          <attvalue for="0" value="" />
+        </attvalues>
+      </node>
+      <node id="493112198" label="493112198">
+        <attvalues>
+          <attvalue for="0" value="" />
+        </attvalues>
+      </node>
+      <node id="4248518919" label="4248518919">
+        <attvalues>
+          <attvalue for="0" value="" />
+        </attvalues>
+      </node>
+      <node id="1287314853024145408" label="1287314853024145408">
+        <attvalues>
+          <attvalue for="0" value="" />
+        </attvalues>
+      </node>
+      <node id="19148041" label="19148041">
+        <attvalues>
+          <attvalue for="0" value="" />
+        </attvalues>
+      </node>
+      <node id="102440969" label="102440969">
+        <attvalues>
+          <attvalue for="0" value="" />
+        </attvalues>
+      </node>
+      <node id="798814994" label="798814994">
+        <attvalues>
+          <attvalue for="0" value="" />
+        </attvalues>
+      </node>
+      <node id="1208873365" label="1208873365">
+        <attvalues>
+          <attvalue for="0" value="" />
+        </attvalues>
+      </node>
+      <node id="85596315" label="85596315">
+        <attvalues>
+          <attvalue for="0" value="" />
+        </attvalues>
+      </node>
+      <node id="2571050917" label="2571050917">
+        <attvalues>
+          <attvalue for="0" value="" />
+        </attvalues>
+      </node>
+      <node id="162862124" label="162862124">
+        <attvalues>
+          <attvalue for="0" value="" />
+        </attvalues>
+      </node>
+      <node id="2652722733" label="2652722733">
+        <attvalues>
+          <attvalue for="0" value="" />
+        </attvalues>
+      </node>
+      <node id="2191065010" label="2191065010">
+        <attvalues>
+          <attvalue for="0" value="" />
+        </attvalues>
+      </node>
+      <node id="50611768" label="50611768">
+        <attvalues>
+          <attvalue for="0" value="" />
+        </attvalues>
+      </node>
+      <node id="430846009" label="430846009">
+        <attvalues>
+          <attvalue for="0" value="" />
+        </attvalues>
+      </node>
+      <node id="590056890" label="590056890">
+        <attvalues>
+          <attvalue for="0" value="" />
+        </attvalues>
+      </node>
+      <node id="287812027" label="287812027">
+        <attvalues>
+          <attvalue for="0" value="" />
+        </attvalues>
+      </node>
+      <node id="476932172" label="476932172">
+        <attvalues>
+          <attvalue for="0" value="HillmanMarc" />
+        </attvalues>
+      </node>
+      <node id="2918410839" label="2918410839">
+        <attvalues>
+          <attvalue for="0" value="" />
+        </attvalues>
+      </node>
+      <node id="2350675930" label="2350675930">
+        <attvalues>
+          <attvalue for="0" value="" />
+        </attvalues>
+      </node>
+      <node id="4538696176" label="4538696176">
+        <attvalues>
+          <attvalue for="0" value="" />
+        </attvalues>
+      </node>
+      <node id="3564167537" label="3564167537">
+        <attvalues>
+          <attvalue for="0" value="" />
+        </attvalues>
+      </node>
+      <node id="318062457" label="318062457">
+        <attvalues>
+          <attvalue for="0" value="" />
+        </attvalues>
+      </node>
+    </nodes>
+    <edges>
+      <edge id="0" source="1100413458393092096" target="909887195527426048" weight="0.980585" />
+      <edge id="1" source="1100413458393092096" target="3564167537" weight="0.980585" />
+      <edge id="2" source="1100413458393092096" target="1208873365" weight="0.980585" />
+      <edge id="3" source="1100413458393092096" target="318062457" weight="0.980585" />
+      <edge id="4" source="1100413458393092096" target="2350675930" weight="0.980585" />
+      <edge id="5" source="1100413458393092096" target="85596315" weight="0.980585" />
+      <edge id="6" source="7227522" target="162862124" weight="0.163099" />
+      <edge id="7" source="7227522" target="590056890" weight="0.163099" />
+      <edge id="8" source="7227522" target="102440969" weight="0.163099" />
+      <edge id="9" source="7227522" target="430846009" weight="0.163099" />
+      <edge id="10" source="7227522" target="4538696176" weight="0.163099" />
+      <edge id="11" source="7227522" target="287812027" weight="0.163099" />
+      <edge id="12" source="7227522" target="4248518919" weight="0.188001" />
+      <edge id="13" source="7227522" target="19148041" weight="0.188001" />
+      <edge id="14" source="7227522" target="798814994" weight="0.188001" />
+      <edge id="15" source="7227522" target="48889987" weight="0.188001" />
+      <edge id="16" source="7227522" target="1287314853024145408" weight="0.188001" />
+      <edge id="17" source="7227522" target="50611768" weight="0.188001" />
+      <edge id="18" source="7227522" target="2571050917" weight="0.188001" />
+      <edge id="19" source="7227522" target="2652722733" weight="0.188001" />
+      <edge id="20" source="7227522" target="1208873365" weight="0.188001" />
+      <edge id="21" source="7227522" target="493112198" weight="0.188001" />
+      <edge id="22" source="760011568272838660" target="476932172" weight="0.771885" />
+      <edge id="23" source="1118563890999197697" target="476932172" weight="0.771885" />
+      <edge id="24" source="2191065010" target="476932172" weight="0.771885" />
+      <edge id="25" source="476932172" target="2918410839" weight="0.771885" />
+      <edge id="26" source="476932172" target="4538696176" weight="0.771885" />
+    </edges>
+  </graph>
+</gexf>

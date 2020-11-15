@@ -1,0 +1,25 @@
+TODO
+- scrap html links
+- name resolution from @
+- cross-reference
+- k-means
+- full pipeline with keras for the model
+
+QUESTIONS
+- need tweets and comments of tweets
+- web scraping, twiter redirecting to other links
+- how to do NER with @ and usernames?
+- spacy needs annotated dataset to be trained on to do coreference resolution...
+- How to review cluster and analyse them?
+- model: difference between k-means and cosine similarity in model
+
+
+11/11/20
+
+- 'Chine' too broad word, may work on 'masque' instead
+- tweets are between 3/10/20 - 11/10/20
+- Is good practice to remove ppl with few fav and friends? (bots ans silencious majority)
+- Louvain gave ~50 partitions, remove not connected parts, subgraphs had relevant communities
+- Is it possible to make graph with NLP, node = person that tweet and edge = cosine sim of tweets
+- How to analyse further the graphs, other than manually look at pple in them?
+- Are the number of partitions too large or is it ok?
