@@ -23,3 +23,22 @@ QUESTIONS
 - Is it possible to make graph with NLP, node = person that tweet and edge = cosine sim of tweets
 - How to analyse further the graphs, other than manually look at pple in them?
 - Are the number of partitions too large or is it ok?
+
+17/11/20
+
+EVALUATING EMBEDDINGS
+
+https://www.aclweb.org/anthology/D15-1036.pdf
+
+two evaluation types
+
+intrinsic: tasks of preselected set of query terms and semantically related target words = query inventory.
+           Then weighted evaluation of these tasks 
+extrinsic: embeddings as input of a task and evaluate them wrt this task (like PoS or NER).
+
+Absolute intrinsic evaluations:
+    - Relatedness: if relatedness scores for words is big -> cosine sim should be high for them
+    - Analogy : find y for x such that their relationship is like a given a and b.
+    - Categorization : cluster words and compare with labeled clusters
+    - Selectional preference : determine how typical a noun is for a verb as the subject or as the verb complement.
+                               ie 'people eat' more sensible than 'eat people'.

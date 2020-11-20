@@ -2,9 +2,12 @@ import os
 import sys
 import pandas as pd
 import numpy as np
+import re
 
-## Constants specific to given .csv
+import nltk
 
+import spacy
+from spacy_lefff import LefffLemmatizer, POSTagger
 
 
 def load(tweets_file, rtt_file):
@@ -88,6 +91,40 @@ def filter_df(df):
     filtered_df = filtered_df[filtered_df['favourites_count'] > 1000]
     return filtered_df
 
+def rmv_hyperlink(text):
+    ## removes all hyperlinks of the text
+    return re.sub(r'''(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))''', " ", text)
+
+def lemmatize(serie):
+    pos = POSTagger()
+    french_lemmatizer = LefffLemmatizer(after_melt = True)
+    
+    nlp = spacy.load('fr_core_news_sm')
+    nlp.add_pipe(pos, name = 'pos', after = 'parser')
+    nlp.add_pipe(french_lemmatizer, name = 'lefff', after = 'pos')
+    
+    lemmatized = serie.map(
+        lambda x : [doc.lemma_ for doc in nlp(x)]
+    )
+    return lemmatized
+
+def rmv_char(text):
+    ## removes all unwanted characters of the text
+    text = re.sub("""[\n´]""", " ", text)
+    text = re.sub("""["'+"*%&/()"=¦@#°§¬|¢\[\]\-\_\—‘’“”•`\^{}~¥©?.,:!$;«»<>]""", "", text)
+    return re.sub("""\d""", " ", text)
+
+def clean_tweets(serie):
+    serie = serie.map(rmv_hyperlink)
+    serie = lemmatize(serie)
+    serie = serie.map(lambda x : " ".join(x))
+    serie = serie.map(lambda x : x.lower()).map(rmv_char)
+    serie = serie.map(nltk.word_tokenize)
+    stopwords = nltk.corpus.stopwords.words('french')
+    serie = serie.map(lambda tokens : [x for x in tokens if x not in stopwords])
+    serie = serie.map(lambda tokens : [x for x in tokens if x.isalpha()])
+    return serie
+
 if __name__ == '__main__':
 
     assert(len(sys.argv) == 3)
@@ -96,12 +133,18 @@ if __name__ == '__main__':
 
     tw_df = clean_headers(tw_df)
     
-    l = ['id', 'original_tweet_id', 'author_id', 'retweet_date', 'a','b','c','d']
-    map_ = {}
-    for (i,c) in enumerate(rtt_df.columns):
-        map_[c] = l[i]
-    rtt_df = rtt_df.rename(columns = map_)
-    rtt_df.drop(columns = l[4:])
+    
+    # This is hust to manage sometimes messy data with weird column names
+    N = len(rtt_df.columns)
+    if N > 4:
+        l = ['id', 'original_tweet_id', 'author_id', 'retweet_date']
+        for k in range(N-4):
+            l.append(str(k))
+        map_ = {}
+        for (i,c) in enumerate(rtt_df.columns):
+            map_[c] = l[i]
+        rtt_df = rtt_df.rename(columns = map_)
+        rtt_df.drop(columns = l[4:])
 
     
     tw_df = remove_columns(tw_df)
@@ -109,6 +152,8 @@ if __name__ == '__main__':
     joined_df = join(tw_df, rtt_df)
 
     joined_df = filter_df(joined_df)
+
+    joined_df['body'] = clean_tweets(joined_df['body'])
 
     print('name of the file: ')
     file_name = input()

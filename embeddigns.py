@@ -5,6 +5,9 @@ import pandas as pd
 import numpy as np
 
 import nltk
+import pickle
+
+import matplotlib.pyplot as plt
 
 import re
 import spacy
@@ -13,6 +16,8 @@ from spacy_lefff import LefffLemmatizer, POSTagger
 
 from gensim.models import Word2Vec
 from gensim.models.callbacks import CallbackAny2Vec
+
+from tensorboard.plugins import projector
 
 import tensorflow
 from tensorflow.keras import layers
@@ -127,9 +132,9 @@ def embeddings_gensim(serie):
 
     """
     
-    #size = 100          # dimensionality of the embedded vectors
+    sizes = [25, 50, 100, 200, 300] # dimensionality of the embedded vectors
     window = 5          # max distance between current and predicted word
-    min_count = 0       # minimum frequency of a word for it to be considered
+    min_count = 1       # minimum frequency of a word for it to be considered
     sg = 1              # trainig alg. 0: CBOW, 1: skip-gram
     negative = 5        # if >0, tells the number of negative samples
     ns_exponent = 0.75  # determines the distribution of the negative sampling. Between 0 and 1.
@@ -140,47 +145,100 @@ def embeddings_gensim(serie):
     epochLogger = EpochLogger()
     callbacks = [epochLogger]
 
-    model = Word2Vec(
-        sentences = serie,
-        #size = size,
-        window = window,
-        min_count = min_count,
-        sg = sg,
-        negative = negative,
-        ns_exponent = ns_exponent,
-        alpha = alpha,
-        min_alpha = min_alpha,
-        sorted_vocab = sorted_vocab,
-        compute_loss = True,
-        callbacks = callbacks
+    i = 0
+
+    for size in sizes:
+
+        model = Word2Vec(
+            sentences = serie,
+            size = size,
+            window = window,
+            min_count = min_count,
+            sg = sg,
+            negative = negative,
+            ns_exponent = ns_exponent,
+            alpha = alpha,
+            min_alpha = min_alpha,
+            sorted_vocab = sorted_vocab,
+            compute_loss = True,
+            callbacks = callbacks
+        )
+        word_vectors = model.wv
+        word_vectors.save(os.path.join('embeddings', 'word2vec_{}_{}.wordvectors'.format(size, sys.argv[1].split('/')[1])))
+        
+        vocab = model.wv.vocab.keys()
+        embeddings = model[vocab]
+
+        log_dir = os.path.join('logs', 'gensim_{}'.format(i))
+        i = i + 1
+        if not os.path.exists(log_dir):
+            os.makedirs(log_dir)
+
+
+        with open(os.path.join(log_dir, 'metadata.tsv'), 'w') as f:
+            for word in vocab:
+                try:
+                    f.write("{}\n".format(word))
+                except UnicodeEncodeError:
+                    f.write("{}\n".format('unknown'))
+
+        weights = tensorflow.Variable(embeddings)
+        checkpoint = tensorflow.train.Checkpoint(embeddings = weights)
+        checkpoint.save(os.path.join(log_dir, 'embedding.ckpt'))
+
+        config = projector.ProjectorConfig()
+        embedding = config.embeddings.add()
+
+        embedding.tensor_name = "embedding/.ATTRIBUTES/VARIABLE_VALUE"
+        embedding.metadata_path = 'metadata.tsv'
+
+
+def lambda_remove_helper(tokens, to_rmv):
+    for w in to_rmv:
+        if w in tokens:
+            tokens.remove(w)
+    return tokens
+
+def remove_singletons(tokens_list, N = 1):
+    """
+    Removes all words that appear only once in the given array
+
+    Parameters
+    ----------
+        tokens_list : pandas.Series of list of str
+            the array to be processed
+        
+        N : int
+            If the number of a word is smaller or equal to N
+            it is removed
+    
+    Returns
+    -------
+        tokens : pandas.Series of list of str
+            the cleaned array
+    """
+    assert(N > 0)
+    T = {}
+    for tokens in tokens_list:
+        for token in tokens:
+            if token in T.keys():
+                T[token] = T[token] + 1
+            else:
+                T[token] = 1
+
+    to_rmv = []
+    for (w,n) in T.items():
+        if(n > N+1):
+            to_rmv.append(w)
+
+    tokens_list = tokens_list.map(
+        lambda tokens : lambda_remove_helper(tokens, to_rmv)
     )
-    word_vectors = model.wv
-    word_vectors.save('word2vec.wordvectors')
+    return tokens_list
 
-    from nltk.cluster import KMeansClusterer
-
-    NUM_CLUSTERS = 20
-
-    kclusterer = KMeansClusterer(
-        NUM_CLUSTERS,
-        distance = nltk.cluster.util.cosine_distance,
-        repeats = 5
-    )
-
-    assigned_clusters = kclusterer.cluster(
-        model[model.wv.vocab],
-        assign_clusters = True
-    )
-
-    V = np.array(list(model.wv.vocab.keys()))
-    K = np.array(assigned_clusters)
-
-    for i in range(NUM_CLUSTERS):
-        print('-----------CLUSTER {}------------'.format(i))
-        for v in V[K == i]:
-            print(v)
 
 def embeddings_keras(posts):
+    posts = remove_singletons(posts)
     posts = posts.map(
         lambda w : ' '.join(w)
     )
@@ -233,51 +291,103 @@ def embeddings_keras(posts):
     assert(len(target_words) == len(context_words))
     assert(len(target_words) == len(labels_))
 
-    embed_dim = 100
-
-    # takes 2 numbers as input, integers of the target and context word
-    in_1 = tensorflow.keras.Input(1)
-    in_2 = tensorflow.keras.Input(1)
-    # add an embedding layer
-    E = layers.Embedding(
-        vocab_size,
-        embed_dim,
-        input_length = 1,
-        name = 'embeddings'
-    )
-    # givest the inputs to the embedding layer
-    E_1 = E(in_1)
-    E_2 = E(in_2)
-    # computes the cosine similarity
-    D = tensorflow.keras.backend.sum(E_1 * E_2, axis = -1)
-    # sigmoid activation function for non-linearity
-    S = layers.Activation(activation = 'sigmoid')(D)
-
-    model = tensorflow.keras.Model(
-        inputs = [in_1, in_2],
-        outputs = [S]
-    )
-
-    model.compile(loss = 'binary_crossentropy', optimizer = 'rmsprop')
-    NUM_VALIDATION = 10
     NUM_TOPN = 10
-    M = np.sum(sampling_table)
-    validation_set = np.random.choice(vocab, NUM_VALIDATION, replace = False, p = sampling_table / M)
-    validation_set = vectorizer(validation_set).numpy().ravel()
     
-    print(labels)
-    print('------------------')
-    print(target_words)
-    print('----------------------')
-    print(context_words)
-    model.fit(
-        [target_words, context_words],
-        labels_,
-        batch_size = 64,
-        epochs = 30,
-        callbacks = [ValidationCallback(validation_set, model, reverse_mapping)],
-        shuffle = True
-    )
+    EMBEDDINGS_DIM = [50, 100, 300]
+    LEARNING_RATES = [0.2, 0.1, 0.05, 0.001]
+    EPOCHS = 30
+
+    for dim in EMBEDDINGS_DIM:
+        for lr in LEARNING_RATES:
+            EM = Embedding_model()
+
+            EM.build(vocab_size, embeddings_dim = dim)
+            EM.compile_(learning_rate = lr)
+
+            validation_set = ['masque']
+            validation_set = [vectorizer.get_vocabulary().index(w) for w in validation_set]
+
+            history = EM.train(
+                target_words,
+                context_words,
+                labels_,
+                epochs = EPOCHS,
+                callbacks = [
+                    # ValidationCallback(validation_set, EM.model, reverse_mapping, NUM_TOPN = NUM_TOPN),
+                    tensorflow.keras.callbacks.ReduceLROnPlateau(monitor = 'loss', factor = 0.1, min_delta = 1, cooldown = 1, min_lr = 0, patience = 5)
+                    # tensorflow.keras.callbacks.EarlyStopping(monitor = 'loss', patience = 10, restore_best_weights = True)
+                ]
+            )
+            path = os.path.join('embeddings', 'embeddings_{}_{}_{:.2f}_{}.txt'.format(dim, str(lr), history[-1], sys.argv[1][:-4]))
+            
+            weights_and_voc = {}
+            weights_and_voc['embeddings'] = EM.model.get_layer('embeddings').weights[0].numpy()
+            weights_and_voc['vocab'] = vocab
+            weights_and_voc['history'] = history
+
+            pickle.dump(weights_and_voc, open(path, 'wb'))
+    
+
+class Embedding_model():
+
+    def __init__(self):
+        pass
+
+    def build(self, vocab_size, embeddings_dim = 100):
+        
+        # takes 2 numbers as input, integers of the target and context word
+        self.in_1 = tensorflow.keras.Input(1)
+        self.in_2 = tensorflow.keras.Input(1)
+        # add an embedding layer
+        E = layers.Embedding(
+            vocab_size,
+            embeddings_dim,
+            # embeddings_regularizer = tensorflow.keras.regularizers.l1(l1 = 0.01),
+            # embeddings_constraint = tensorflow.keras.constraints.UnitNorm(axis= 1),
+            input_length = 1,
+            name = 'embeddings'
+        )
+        # gives the inputs to the embedding layer
+        E_1 = E(self.in_1)
+        E_2 = E(self.in_2)
+        
+        N_1 = tensorflow.keras.backend.l2_normalize(E_1, axis = 1)
+        N_2 = tensorflow.keras.backend.l2_normalize(E_2, axis = 1)
+
+        # computes the cosine similarity
+        D = tensorflow.keras.backend.sum(E_1 * E_2, axis = -1)
+        # sigmoid activation function for non-linearity
+        self.S = layers.Activation(activation = 'sigmoid')(D)
+
+    def compile_(self, learning_rate = 0.1):
+        self.model = tensorflow.keras.Model(
+            inputs = [self.in_1, self.in_2],
+            outputs = [self.S]
+        )
+
+        self.model.compile(
+           loss = 'binary_crossentropy',
+            optimizer = tensorflow.keras.optimizers.RMSprop(learning_rate = learning_rate)
+        )
+
+    def train(self, target_words, context_words, labels, batch_size = 32, epochs = 20, callbacks = [], plot = False):
+        history = self.model.fit(
+            [target_words, context_words],
+            labels,
+            batch_size = batch_size,
+            epochs = epochs,
+            callbacks = callbacks,
+            shuffle = True
+        )
+        if plot:
+            train_loss = history.history['loss']
+            plt.figure()
+            plt.xlabel('epochs')
+            plt.ylabel('loss')
+            plt.plot(train_loss)
+            plt.show()
+
+        return history.history['loss']
 
 class ValidationCallback(tensorflow.keras.callbacks.Callback):
     
@@ -313,15 +423,5 @@ if __name__ == '__main__':
 
     df = pd.read_csv(file_name)
 
-    posts = df[COLUMN_NAME]
-
-    posts = lemmatize(posts)
-
-    posts = posts.map(
-        normalize
-    ).map(
-        remove_stopwords
-    )
-
-    embeddings_keras(posts)
+    embeddings_gensim(df['body'])
 
