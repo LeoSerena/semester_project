@@ -123,7 +123,7 @@ def clean_tweets(serie):
     stopwords = nltk.corpus.stopwords.words('french')
     serie = serie.map(lambda tokens : [x for x in tokens if x not in stopwords])
     serie = serie.map(lambda tokens : [x for x in tokens if x.isalpha()])
-    return serie
+    return serie.map(lambda x : " ".join(x))
 
 if __name__ == '__main__':
 

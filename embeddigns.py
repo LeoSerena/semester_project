@@ -422,6 +422,12 @@ if __name__ == '__main__':
     file_name = sys.argv[1]
 
     df = pd.read_csv(file_name)
-
-    embeddings_gensim(df['body'])
+    
+    df = df[df['lang'] == 'fr']
+    df = df[~df['body'].isnull()]
+    serie = df['body'].astype(str)
+    l = []
+    for body in serie:
+        l.append(nltk.word_tokenize(body))
+    embeddings_gensim(np.array(l))
 
